@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { importErrorMessage } from '@/lib/import-errors'
+import type { VmKind } from '@/lib/vm-kind'
 import { nextVmSeq, vmIdOf, vmNameOf } from '@/lib/vm-name'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,11 +32,13 @@ import {
   VM_CONCURRENCY_OPTIONS,
   VM_CREATE_AFTER,
   VM_LOCALES,
+  VM_PLATFORMS,
   VM_REGION_AUTO,
   VM_REGIONS,
   VM_TEMPLATES,
   VM_TIMEZONES,
   VM_WEIGHT_OPTIONS,
+  vmPlatformPayload,
 } from '@/features/vm/create-options'
 import { KernelFeatTags } from '@/features/vm/kernel-feat-tags'
 
@@ -92,6 +95,7 @@ export function CreateVmFields({
   const vms = dash.data?.vms || []
 
   const [template, setTemplate] = useState<string>(DEFAULT_TEMPLATE.id)
+  const [platform, setPlatform] = useState<VmKind>('claude')
   const [name, setName] = useState('')
   const [kernel, setKernel] = useState<string>(DEFAULT_TEMPLATE.kernel)
   const [after, setAfter] = useState<string>(
@@ -142,8 +146,7 @@ export function CreateVmFields({
           max_concurrency: conc,
           weight,
           ...deriveAfter(after),
-          platform: 'anthropic',
-          family: 'claude',
+          ...vmPlatformPayload(platform),
         }),
       })
       return data.id || data.vm_id || data.vm?.id || id || ''
@@ -160,6 +163,29 @@ export function CreateVmFields({
 
   return (
     <div className='space-y-3'>
+      <div className='space-y-1'>
+        <Label>平台</Label>
+        <Select
+          value={platform}
+          onValueChange={(v) => setPlatform(v as VmKind)}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {VM_PLATFORMS.map(([v, l]) => (
+              <SelectItem key={v} value={v}>
+                {l}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className='pt-1 text-xs text-muted-foreground'>
+          建好后不可改。决定这个槽收哪种凭证：Claude 用 Setup Token / Console
+          API Key，GPT 用 ChatGPT OAuth（auth.json / AT / RT）。
+        </p>
+      </div>
+
       <div className='space-y-1'>
         <Label>模板</Label>
         <Select value={template} onValueChange={applyTemplate}>

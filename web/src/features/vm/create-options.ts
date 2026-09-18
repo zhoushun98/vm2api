@@ -1,3 +1,5 @@
+import type { VmKind } from '@/lib/vm-kind'
+
 export const KERNELS = [
   {
     id: 'ubuntu-24.04',
@@ -129,6 +131,22 @@ export const VM_LOCALES: [string, string][] = [
   ['ja_JP.UTF-8', '日本語'],
   ['C.UTF-8', 'C'],
 ]
+
+/**
+ * 槽位平台。一个槽只放一种凭证，建完由后端 `stampVmKind` 按 `platform`/`family`
+ * 定死，槽详情页据此切 Claude / Codex 凭证面。建好后不改平台。
+ */
+export const VM_PLATFORMS: [VmKind, string][] = [
+  ['claude', 'Claude · Anthropic'],
+  ['codex', 'GPT · ChatGPT / Codex'],
+]
+
+/** 平台 → 建槽 body 的两个字段，对齐后端 `normalizeVmKind` 认的标签。 */
+export function vmPlatformPayload(kind: VmKind) {
+  return kind === 'codex'
+    ? { platform: 'openai', family: 'codex' }
+    : { platform: 'anthropic', family: 'claude' }
+}
 
 export const VM_CONCURRENCY_OPTIONS = [1, 2, 4, 8, 16, 20, 32]
 export const VM_WEIGHT_OPTIONS = [1, 2, 3, 5]
